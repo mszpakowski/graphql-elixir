@@ -1,11 +1,11 @@
-#---
+# ---
 # Excerpted from "Craft GraphQL APIs in Elixir with Absinthe",
 # published by The Pragmatic Bookshelf.
 # Copyrights apply to this code. It may not be used to create training material,
 # courses, books, articles, and the like. Contact us if you are in doubt.
 # We make no guarantees that this code is fit for any purpose.
 # Visit http://www.pragmaticprogrammer.com/titles/wwgraphql for more book information.
-#---
+# ---
 defmodule PlateSlateWeb.ErrorViewTest do
   use PlateSlateWeb.ConnCase, async: true
 
@@ -14,16 +14,16 @@ defmodule PlateSlateWeb.ErrorViewTest do
 
   test "renders 404.html" do
     assert render_to_string(PlateSlateWeb.ErrorView, "404.html", []) ==
-           "Page not found"
+             "Page not found"
   end
 
   test "render 500.html" do
     assert render_to_string(PlateSlateWeb.ErrorView, "500.html", []) ==
-           "Internal server error"
+             "Internal server error"
   end
 
   test "render any other" do
     assert render_to_string(PlateSlateWeb.ErrorView, "505.html", []) ==
-           "Internal server error"
+             "Internal server error"
   end
 end
