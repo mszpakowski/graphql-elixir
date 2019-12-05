@@ -70,4 +70,24 @@ defmodule PlateStateWeb.Schema.Query.MenuItemsTest do
     assert %{"errors" => [%{"message" => message}]} = json_response(response, 200)
     assert message == "Argument \"matching\" has invalid value 123."
   end
+
+  @query """
+  query ($term: String) {
+    menuItems(matching: $term) {
+      name
+    }
+  }
+  """
+  @variables %{"term" => "reu"}
+  test "menuItems field filters by name when using variable" do
+    response = get(build_conn(), "/api", query: @query, variables: @variables)
+
+    assert json_response(response, 200) == %{
+             "data" => %{
+               "menuItems" => [
+                 %{"name" => "Reuben"}
+               ]
+             }
+           }
+  end
 end
