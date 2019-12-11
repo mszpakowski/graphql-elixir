@@ -11,24 +11,56 @@ defmodule PlateSlateWeb.Schema do
 
   alias PlateSlateWeb.Resolvers
 
+  import_types(PlateSlateWeb.Schema.MenuTypes)
+
   query do
     @desc "The list of available items on the menu"
-    field(:menu_items, list_of(:menu_item)) do
-      arg(:matching, :string)
+    import_fields(:menu_queries)
+  end
 
-      resolve(&Resolvers.Menu.menu_items/3)
+  mutation do
+    field :create_menu_item, :menu_item_result do
+      arg(:input, non_null(:menu_item_input))
+
+      resolve(&Resolvers.Menu.create_item/3)
     end
   end
 
-  @desc "Available item on the menu"
-  object :menu_item do
-    @desc "Unique identifier"
-    field(:id, :id)
-    @desc "Name of the item"
-    field(:name, :string)
-    @desc "Description of the item"
-    field(:description, :string)
-    @desc "Price of the item"
-    field(:price, :float)
+  @desc "An error ecountered trying to persist input"
+  object :input_error do
+    field(:key, non_null(:string))
+    field(:message, non_null(:string))
+  end
+
+  enum :sort_order do
+    value(:asc)
+    value(:desc)
+  end
+
+  scalar :date do
+    parse(fn input ->
+      with %Absinthe.Blueprint.Input.String{value: value} <- input,
+           {:ok, date} <- Date.from_iso8601(value) do
+        {:ok, date}
+      else
+        _ -> :error
+      end
+    end)
+
+    serialize(fn date ->
+      Date.to_iso8601(date)
+    end)
+  end
+
+  scalar :decimal do
+    parse(fn
+      %{value: value}, _ ->
+        Decimal.parse(value)
+
+      _, _ ->
+        :error
+    end)
+
+    serialize(&to_string/1)
   end
 end
