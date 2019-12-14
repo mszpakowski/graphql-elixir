@@ -8,7 +8,7 @@
 # ---
 defmodule PlateSlateWeb.Endpoint do
   use Phoenix.Endpoint, otp_app: :plate_slate
-  use Absinthe.Phoenix.Endpoint
+  use Absinthe.Phoenix.Endpoint, schema: PlateSlateWeb.Schema
 
   socket("/socket", PlateSlateWeb.UserSocket)
 
