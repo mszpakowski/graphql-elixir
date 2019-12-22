@@ -1,6 +1,8 @@
 defmodule PlateSlateWeb.Schema.MenuTypes do
   use Absinthe.Schema.Notation
 
+  import Absinthe.Resolution.Helpers
+
   alias PlateSlateWeb.Resolvers
 
   @desc "Available item on the menu"
@@ -16,6 +18,12 @@ defmodule PlateSlateWeb.Schema.MenuTypes do
     field(:price, :decimal)
     @desc "Date the item was added to the menu"
     field(:added_on, :date)
+    @desc "Allergy information"
+    field(:allergy_info, list_of(:allergy_info))
+    @desc "Category"
+    field :category, :category do
+      resolve(dataloader(Menu, :category))
+    end
   end
 
   object :category do
@@ -24,13 +32,20 @@ defmodule PlateSlateWeb.Schema.MenuTypes do
     field(:description, :string)
 
     field :items, list_of(:menu_item) do
-      resolve(&Resolvers.Menu.items_for_category/3)
+      arg(:filter, :menu_item_filter)
+      arg(:order, type: :sort_order, default_value: :asc)
+      resolve(dataloader(Menu, :items))
     end
   end
 
   object :menu_item_result do
     field(:menu_item, :menu_item)
     field(:errors, list_of(:input_error))
+  end
+
+  object :allergy_info do
+    field(:allergen, :string)
+    field(:severity, :string)
   end
 
   interface :search_result do

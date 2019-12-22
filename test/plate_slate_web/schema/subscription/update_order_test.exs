@@ -11,7 +11,19 @@ defmodule PlateSlateWeb.Schema.Subscription.UpdateOrderTest do
     readyOrder(id: $id) { errors { message } }
   }
   """
+  @login """
+  mutation ($email: String!, $role: Role!) {
+    login(role: $role, email: $email, password: "super-secret") {
+      token
+    }
+  }
+  """
   test "subscribe to order update", %{socket: socket} do
+    # login
+    user = Factory.create_user("employee")
+    ref = push_doc(socket, @login, variables: %{"email" => user.email, role: "EMPLOYEE"})
+    assert_reply(ref, :ok, %{data: %{"login" => %{"token" => _}}}, 1_000)
+
     reuben = menu_item("Reuben")
 
     {:ok, order1} =
