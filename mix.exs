@@ -60,7 +60,8 @@ defmodule PlateSlate.Mixfile do
       {:jason, "~> 1.1.2"},
       {:comeonin_ecto_password, "~> 3.0"},
       {:pbkdf2_elixir, "~> 1.0"},
-      {:dataloader, "~> 1.0"}
+      {:dataloader, "~> 1.0"},
+      {:cors_plug, "~> 2.0"}
     ]
   end
 

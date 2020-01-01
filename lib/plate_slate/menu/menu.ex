@@ -137,13 +137,16 @@ defmodule PlateSlate.Menu do
     |> Repo.all()
   end
 
-  defp items_query(args) do
+  def items_query(args) do
     Enum.reduce(args, Item, fn
       {:order, order}, query ->
         query |> order_by({^order, :name})
 
       {:filter, filter}, query ->
         query |> filter_with(filter)
+
+      _, query ->
+        query
     end)
   end
 

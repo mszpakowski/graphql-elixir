@@ -8,6 +8,7 @@
 # ---
 defmodule PlateSlateWeb.Schema do
   use Absinthe.Schema
+  use Absinthe.Relay.Schema, :modern
 
   alias PlateSlate.Menu
   alias PlateSlateWeb.Resolvers
@@ -16,6 +17,7 @@ defmodule PlateSlateWeb.Schema do
   import_types(PlateSlateWeb.Schema.MenuTypes)
   import_types(PlateSlateWeb.Schema.OrderingTypes)
   import_types(PlateSlateWeb.Schema.AccountsTypes)
+  import_types(Absinthe.Phoenix.Types)
 
   def middleware(middleware, field, object) do
     middleware
@@ -58,6 +60,16 @@ defmodule PlateSlateWeb.Schema do
   end
 
   query do
+    node field do
+      resolve(fn
+        %{type: :menu_item, id: local_id}, _ ->
+          {:ok, PlateSlate.Repo.get(PlateSlate.Menu.Item, local_id)}
+
+        _, _ ->
+          {:error, "Unknown node"}
+      end)
+    end
+
     field :me, :user do
       middleware(Middleware.Authorize, :any)
       resolve(&Resolvers.Accounts.me/3)
@@ -158,6 +170,19 @@ defmodule PlateSlateWeb.Schema do
 
       resolve(fn %{order: order}, _, _ -> {:ok, order} end)
     end
+
+    field :new_menu_item, :menu_item do
+      config(fn _args, _info ->
+        {:ok, topic: "*"}
+      end)
+    end
+  end
+
+  node interface do
+    resolve_type(fn
+      %PlateSlate.Menu.Item{}, _ -> :menu_item
+      _, _ -> nil
+    end)
   end
 
   @desc "An error ecountered trying to persist input"

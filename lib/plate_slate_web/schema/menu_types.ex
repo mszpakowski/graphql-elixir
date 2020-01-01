@@ -1,15 +1,16 @@
 defmodule PlateSlateWeb.Schema.MenuTypes do
   use Absinthe.Schema.Notation
+  use Absinthe.Relay.Schema.Notation, :modern
 
   import Absinthe.Resolution.Helpers
 
+  alias PlateSlate.Menu
   alias PlateSlateWeb.Resolvers
+  alias PlateSlateWeb.Schema.Middleware
 
   @desc "Available item on the menu"
-  object :menu_item do
+  node object(:menu_item) do
     interfaces([:search_result])
-    @desc "Unique identifier"
-    field(:id, :id)
     @desc "Name of the item"
     field(:name, :string)
     @desc "Description of the item"
@@ -23,6 +24,13 @@ defmodule PlateSlateWeb.Schema.MenuTypes do
     @desc "Category"
     field :category, :category do
       resolve(dataloader(Menu, :category))
+    end
+
+    @desc "Order history"
+    field :order_history, :order_history do
+      arg(:since, :date)
+      middleware(Middleware.Authorize, "employee")
+      resolve(&Resolvers.Ordering.order_history/3)
     end
   end
 
@@ -46,6 +54,21 @@ defmodule PlateSlateWeb.Schema.MenuTypes do
   object :allergy_info do
     field(:allergen, :string)
     field(:severity, :string)
+  end
+
+  object :order_history do
+    field :orders, list_of(:order) do
+      resolve(&Resolvers.Ordering.orders/3)
+    end
+
+    field :quantity, non_null(:integer) do
+      resolve(Resolvers.Ordering.stat(:quantity))
+    end
+
+    @desc "Gross Revenue"
+    field :gross, non_null(:float) do
+      resolve(Resolvers.Ordering.stat(:gross))
+    end
   end
 
   interface :search_result do
@@ -88,13 +111,20 @@ defmodule PlateSlateWeb.Schema.MenuTypes do
     field(:category_id, non_null(:id))
   end
 
+  connection(node_type: :menu_item)
+
   object :menu_queries do
     @desc "The list of available items on the menu"
-    field(:menu_items, list_of(:menu_item)) do
+    connection field(:menu_items, node_type: :menu_item) do
       arg(:filter, :menu_item_filter)
       arg(:order, type: :sort_order, default_value: :asc)
 
       resolve(&Resolvers.Menu.menu_items/3)
+    end
+
+    field :menu_item, :menu_item do
+      arg(:id, non_null(:id))
+      resolve(&Resolvers.Menu.get_item/3)
     end
 
     field :search, list_of(:search_result) do
